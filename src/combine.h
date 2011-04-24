@@ -1,3 +1,7 @@
+/*
+  Copyright: (c) 2011 Matija Osrecki <matija.osrecki@fer.hr>
+ */
+
 #ifndef ADWT_COMBINE_H
 #define ADWT_COMBINE_H
 

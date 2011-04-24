@@ -1,4 +1,7 @@
 #!/bin/bash
+#
+# Copyright: (c) 2011 Matija Osrecki <matija.osrecki@fer.hr>
+#
 
 for testcase in data/*
 do

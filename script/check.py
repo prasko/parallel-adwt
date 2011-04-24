@@ -1,4 +1,8 @@
 #!/usr/bin/python
+#
+# Copyright: (c) 2011 Matija Osrecki <matija.osrecki@fer.hr>
+#
+
 import sys
 
 def main():

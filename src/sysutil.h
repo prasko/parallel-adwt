@@ -1,3 +1,7 @@
+/*
+  Copyright: (c) 2011 Matija Osrecki <matija.osrecki@fer.hr>
+ */
+
 #ifndef ADWT_SYSUTIL_H
 #define ADWT_SYSUTIL_H
 

@@ -1,3 +1,7 @@
+/*
+  Copyright: (c) 2011 Matija Osrecki <matija.osrecki@fer.hr>
+ */
+
 #include <vector>
 #include <list>
 #include <cstdio>
