@@ -1,0 +1,4 @@
+#ignore bin and object files
+
+obj/*
+*~
