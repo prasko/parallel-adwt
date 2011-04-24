@@ -1,28 +1,25 @@
 Parallel ADWT (adaptive discrete wavelet transformation)
 ========================================================
 
-This is the main repository for development od parallel JPEG2000 compression 
-algorithm.
-
-The project is the thesis for my B. Sc. diploma in University of Zagreb, 
-Faculty of Electrical Engineering and Computing (FER), and as such is not
-currently open for contribution.
-
-When I graduate, the project will change it's status to open, if someone is 
-interested in working with it.
+The project is the thesis for my B. Sc. diploma in University of
+Zagreb, Faculty of Electrical Engineering and Computing (FER), and is
+not currently open for contribution.
 
 
 About the project
 -----------------
 
-The goal of the project is to succesfully implement 2D ADWT on both NVIDIA CUDA 
-and CPU platforms. 
+Adaptive discrete wavelet transform is a modern method used in signal
+processing for denoising, compression, etc. JPEG2000 is an example.
 
-ADWT is currently developed and imlemented in Matlab by Damir Sersic and 
-Ana Sovic on Department of Electronic Systems and Information Processing, 
-Faculty of Electrical Engineering and Computing.
+ADWT is implemented using filter banks which are the static part and
+an adaptive part which tries to guess some parameters to improve the
+algorithm. The goal is to contribute to ADWT by speeding up the
+algorithm using CUDA architecture and to implement some new ideas
+concerning the adaptive part.
 
-Developers
+It was previously implemented in Matlab, and I'm coding it in C++.
+
 ----------
 
 Matija Osrecki
