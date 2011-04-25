@@ -4,7 +4,7 @@ CUDAPREFIX = cuda
 CPUPREFIX = cpu
 
 OBJECTS = main.o adwt.o sysutil.o
-CPU_OBJECTS = lpw.o combine.o
+CPU_OBJECTS = lpw.o combine.o denoise.o
 CUDA_OBJECTS = lpw.o
 
 OBJDIR = obj

@@ -12,6 +12,7 @@
 
 #include "lpw.h"
 #include "combine.h"
+#include "denoise.h"
 #include "sysutil.h"
 
 /*
@@ -72,14 +73,18 @@ void adwt(signal &input, signal &A, signal &D) {
   
   Lpw *lsw = new Lsw(yd, x4);
   //  ConfidenceInterval *ci = new ConfidenceInterval(0.005);
-  ConfidenceInterval *ci = new TunnelInterval(0.01, 0.0005, 0.02);
+  ConfidenceInterval *ci = new TunnelInterval(0.05, 0.005, 0.005);
   WindowCombiner *wc = new SimpleWindowCombiner(*lsw, *ci);
 
   signal b_res;
   wc->combine(b_res);
 
+  signal b_dns;
+  Denoiser *dns = new DenoiserICI;
+  dns->denoise(b_res, b_dns);
+
   for(int i = 0; i < (int)b_res.size(); ++i)
-    printf("%lf ", b_res[i]);
+    printf("%lf ", b_dns[i]);
   printf("\n");
 
   signal ub;
