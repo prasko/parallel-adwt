@@ -12,32 +12,34 @@
 template <class T> inline T sqr(T x) { return x * x; }
 
 void DenoiserICI::denoise(const signal &sig, signal &res) {
-  const double gama = 4.4;
+  const double gama = gama_;
   const int len = (int)sig.size();
-  const double rc = 0.1;
+  const double rc = rc_;
+
+  double sum, avg, sqrs;
+  double maxlb, minub;
+
+  double tavg, sigma;
+  double rk;
 
   for(int n = 0; n < len; ++n) {
-    double sum = sig[n];
-    double avg = 0.0;
+    sum = avg = sig[n];
+    sqrs = sqr(sig[n]);
 
-    double maxlb = -1e10;
-    double minub = +1e10;
+    maxlb = -1e10;
+    minub = +1e10;
 
     for(int k = 2; n+k-1 < len; ++k) {
       sum += sig[n+k-1];
+      sqrs += sqr(sig[n+k-1]);
+      tavg = sum / k;
 
-      double tavg = sum / k;
-      double sigma = 0.0;
-
-      for(int j = n; j < n+k; ++j)
-        sigma += sqr(sig[j] - tavg);
-
-      sigma = sqrt(sigma / k);
+      sigma = sqrt((sqrs - 2 * tavg * sum + k * sqr(tavg)) / (k-1));
 
       minub = std::min(minub, tavg + gama * sigma);
       maxlb = std::max(maxlb, tavg - gama * sigma);
 
-      double rk = (minub-maxlb) / (2 * gama * sigma);
+      rk = (minub-maxlb) / (2 * gama * sigma);
 
       if(minub < maxlb || rk < rc) break;
 

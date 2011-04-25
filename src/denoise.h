@@ -17,8 +17,12 @@ public:
 
 class DenoiserICI : public Denoiser {
 public:
-  DenoiserICI() {}
+  DenoiserICI(double gama=4.4, double rc=0.85) : gama_(gama), rc_(rc) {}
   virtual void denoise(const signal &sig, signal &res);
+
+private:
+  double gama_;
+  double rc_;
 };
 
 
