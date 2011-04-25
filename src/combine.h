@@ -5,9 +5,34 @@
 #ifndef ADWT_COMBINE_H
 #define ADWT_COMBINE_H
 
+#include <cmath>
+#include <vector>
+
 #include "lpw.h"
 
-#include <vector>
+class ConfidenceInterval {
+public:
+  ConfidenceInterval(double base) : base_(base) {}
+  bool inside(int pos, double value) { return fabs(value) < interval(pos); }
+  virtual double interval(const int pos) { return base_; }
+
+protected:
+  const double base_;
+};
+
+class TunnelInterval : public ConfidenceInterval {
+public:
+  TunnelInterval(double upper, double lower, double rate) : 
+    ConfidenceInterval(upper), lower_(lower), rate_(rate) {}
+  
+  virtual double interval(int pos) { 
+    return std::max(lower_, base_ - pos * rate_ * (base_-lower_) );
+  }
+
+protected:
+  const double lower_;
+  const double rate_;
+};
 
 class WindowCombiner {
 public:
@@ -20,8 +45,13 @@ protected:
 
 class SimpleWindowCombiner : public WindowCombiner {
 public:
-  SimpleWindowCombiner(Lpw &lpw) : WindowCombiner(lpw) {}
+  SimpleWindowCombiner(Lpw &lpw, ConfidenceInterval &interval) : 
+    WindowCombiner(lpw), interval_(interval) {}
+
   void combine(std::vector<double> &result);
+
+private:
+  ConfidenceInterval &interval_;
 };
 
 #endif  // ADWT_COMBINE_H

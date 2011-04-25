@@ -10,6 +10,15 @@
 
 using std::vector;
 
+/*
+  Lpw is an interface for calculating parameter B such that Y is best
+  approximated by B * X, for every Yi and Xi.
+
+  Calculation is performed on different window positions and sizes,
+  meaning that for windows position WP and size WS, the calculation
+  will be performed on members of arrays X and Y that are around index
+  WP, with a total of WS members included, and others ignored.
+ */
 class Lpw {
 public:
   Lpw(const vector<double> &y, const vector<double> &x) : y_(y), x_(x) {
@@ -26,6 +35,13 @@ protected:
   const vector<double> &x_;
 };
 
+/*
+  Calculates the parameter B such that Y is approximated by B * X, by
+  minimizing the L2 distance of signals Y and B * X.
+
+  Calculation of B for any window size or position is a O(1)
+  operation, and is performed on each call of getCoef(wsize, wpos).
+ */
 class Lsw : public Lpw {
 public:
   Lsw(const vector<double> &y, const vector<double> &x) : Lpw(y, x) { init(); }
@@ -39,18 +55,5 @@ private:
   void init();
 };
 
-/*
-  Takes two equaly sized vectors Y and X, and 
-  calculates coefficients for all windows sizes and positions
-  using least squared approximation.
-
-  If N is the size of vector X, resulting matrix will have
-  N-1 rows (sizes) and N columns (positions).
-
-  mat[i][j] represents coef. for windows size 2*i + 3 centered at position j.
-
-  TODO: change double* with a decent class Matrix
-*/
-double* lswc(const vector<double> &y, const vector<double> &x);
 
 #endif  // ADWT_LPW_H

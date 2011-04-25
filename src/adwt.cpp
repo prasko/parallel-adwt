@@ -65,13 +65,15 @@ void adwt(signal &input, signal &A, signal &D) {
   // calculate Yd(z)
   adder.add(xo, x2, -1.0, yd);
 
-  int n = (int)yd.size();
+  //  int n = (int)yd.size();
 
   // guess parameter b = Yd(z) / U(z)
   //  double *b_all = lswc(yd, x4);  // use linear least squares 
   
   Lpw *lsw = new Lsw(yd, x4);
-  WindowCombiner *wc = new SimpleWindowCombiner(*lsw);
+  //  ConfidenceInterval *ci = new ConfidenceInterval(0.005);
+  ConfidenceInterval *ci = new TunnelInterval(0.01, 0.0005, 0.02);
+  WindowCombiner *wc = new SimpleWindowCombiner(*lsw, *ci);
 
   signal b_res;
   wc->combine(b_res);
