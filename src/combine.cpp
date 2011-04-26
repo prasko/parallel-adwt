@@ -9,7 +9,6 @@
 
 #include "combine.h"
 
-
 void SimpleWindowCombiner::combine(std::vector<double> &res) {
   int pos = 0;
   int n = lpw_.length();

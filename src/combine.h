@@ -1,6 +1,6 @@
 /*
   Copyright: (c) 2011 Matija Osrecki <matija.osrecki@fer.hr>
- */
+*/
 
 #ifndef ADWT_COMBINE_H
 #define ADWT_COMBINE_H
@@ -52,6 +52,12 @@ public:
 
 private:
   ConfidenceInterval &interval_;
+};
+
+class ICIWindowCombiner : public WindowCombiner {
+public:
+  ICIWindowCombiner(Lpw &lpw) : WindowCombiner(lpw) {}
+  void combine(std::vector<double> &result);
 };
 
 #endif  // ADWT_COMBINE_H
