@@ -58,6 +58,9 @@ class ICIWindowCombiner : public WindowCombiner {
 public:
   ICIWindowCombiner(Lpw &lpw) : WindowCombiner(lpw) {}
   void combine(std::vector<double> &result);
+
+private:
+  void combine_(std::vector< std::pair<double, int> > &, int);
 };
 
 #endif  // ADWT_COMBINE_H

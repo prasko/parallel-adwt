@@ -66,15 +66,14 @@ void adwt(signal &input, signal &A, signal &D) {
   // calculate Yd(z)
   adder.add(xo, x2, -1.0, yd);
 
-  //  int n = (int)yd.size();
-
   // guess parameter b = Yd(z) / U(z)
-  //  double *b_all = lswc(yd, x4);  // use linear least squares 
   
   Lpw *lsw = new Lsw(yd, x4);
   //  ConfidenceInterval *ci = new ConfidenceInterval(0.005);
-  ConfidenceInterval *ci = new TunnelInterval(0.05, 0.005, 0.005);
-  WindowCombiner *wc = new SimpleWindowCombiner(*lsw, *ci);
+  // ConfidenceInterval *ci = new TunnelInterval(0.05, 0.005, 0.005);
+  // WindowCombiner *wc = new SimpleWindowCombiner(*lsw, *ci);
+
+  WindowCombiner *wc = new ICIWindowCombiner(*lsw);
 
   signal b_res;
   wc->combine(b_res);
@@ -84,7 +83,7 @@ void adwt(signal &input, signal &A, signal &D) {
   dns->denoise(b_res, b_dns);
 
   for(int i = 0; i < (int)b_res.size(); ++i)
-    printf("%lf ", b_dns[i]);
+    printf("(%lf %lf)", b_res[i], b_dns[i]);
   printf("\n");
 
   signal ub;
