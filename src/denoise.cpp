@@ -11,22 +11,21 @@
 
 template <class T> inline T sqr(T x) { return x * x; }
 
-void ICIDenoiser::denoise1_(const signal &sig, 
-                            std::vector< std::pair<double,int> > &res) {
+void OneWayICIDenoiser::denoise(const signal &sig, signal &res) {
   const double gama = gama_;
   const double sigma_noise = sigma_;
 
   const int len = (int)sig.size();
   const double rc = rc_;
 
-  double sum, avg;
+  double sum, avg, tavg, sigma, rk;
   double maxlb, minub;
-
-  double tavg, sigma;
-  double rk;
 
   int k;
 
+  interval_right_.clear();
+  result_ = &res;
+  
   for(int n = 0; n < len; ++n) {
     sum = avg = sig[n];
 
@@ -49,25 +48,39 @@ void ICIDenoiser::denoise1_(const signal &sig,
       avg = tavg;
     }
 
-    res.push_back(std::make_pair(avg, k-1));    
+    res.push_back(avg);
+    interval_right_.push_back(k-1);
   }
 }
 
-void ICIDenoiser::denoise(const signal &sig, signal &res) {
-  signal sig_rev(sig);
-  std::reverse(sig_rev.begin(), sig_rev.end());
-  
-  std::vector< std::pair<double, int> > res_right, res_left;
+void TwoWayICIDenoiser::denoise(const signal &sig, signal &res) {
+  signal sig_left(sig);
+  std::reverse(sig_left.begin(), sig_left.end());
 
-  denoise1_(sig, res_right);
-  denoise1_(sig_rev, res_left);
+  std::vector<double> res_left, res_right;
+  
+  this->OneWayICIDenoiser::denoise(sig_left, res_left);
+
+  interval_left_.resize(interval_right_.size());
+
+  reverse_copy(interval_right_.begin(), interval_right_.end(), 
+               interval_left_.begin());
 
   std::reverse(res_left.begin(), res_left.end());
 
+  this->OneWayICIDenoiser::denoise(sig, res_right);
+
+  double b, br;
+  int k, kr;
   for(int i = 0; i < (int)res_left.size(); ++i) {
-    double b = res_right[i].first, br = res_left[i].first;
-    int k = res_right[i].second, kr = res_left[i].second;
+    b = res_right[i];
+    br = res_left[i];
+
+    k = interval_right_[i];
+    kr = interval_left_[i];
 
     res.push_back(b * k / (k+kr) + br * kr / (k+kr));
   }
+
+  result_ = &res;
 }

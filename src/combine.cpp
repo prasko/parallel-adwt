@@ -8,6 +8,28 @@
 #include <vector>
 
 #include "combine.h"
+#include "denoise.h"
+
+void DenoiserWindowCombiner::combiner(std::vector<double> &res) {
+  int n = lpw_.length();
+
+  std::vector<signal> params;
+  std::vector<TwoWayICIDenoiser*> intervals; 
+
+  for(int wsize = 10; wsize < n/10; wsize = (int)(1.31 * wsize)) {
+    std::vector<double> windowed_signal;
+
+    for(int i = 0; i < n; ++i) {
+      windowed_signal.push_back(lpw_.getCoef(wsize, i));
+    }
+      
+    intervals.push_back(new TwoWayICIDenoiser());
+    params.push_back(signal());
+    intervals.back()->denoise(windowed_signal, params.back());
+  }
+
+  
+}
 
 void SimpleWindowCombiner::combine(std::vector<double> &res) {
   int pos = 0;
@@ -96,7 +118,6 @@ void ICIWindowCombiner::combine_(
     wsize = min_wsize;
 
     for(k = 1; n+k-1 < len; wsize++,  k++) {
-      wsize = 100;
       if(dir == 0) {
         sum += lpw_.getCoef(std::min(wsize, max_wsize), n+k-1);
       } else {

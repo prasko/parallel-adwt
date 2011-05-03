@@ -79,7 +79,7 @@ void adwt(signal &input, signal &A, signal &D) {
   wc->combine(b_res);
 
   signal b_dns;
-  Denoiser *dns = new ICIDenoiser(4.4, 0.7, 0.2);
+  Denoiser *dns = new TwoWayICIDenoiser(4.4, 0.7, 0.2);
   dns->denoise(b_res, b_dns);
 
   for(int i = 0; i < (int)b_res.size(); ++i)
