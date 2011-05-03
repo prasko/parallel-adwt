@@ -10,25 +10,45 @@
 #include "combine.h"
 #include "denoise.h"
 
-void DenoiserWindowCombiner::combiner(std::vector<double> &res) {
+void DenoiserWindowCombiner::combine(std::vector<double> &res) {
+  TwoWayICIDenoiser denoiser;
   int n = lpw_.length();
 
-  std::vector<signal> params;
-  std::vector<TwoWayICIDenoiser*> intervals; 
+  std::vector<double> ratios(n);
+  res.resize(n);
 
-  for(int wsize = 10; wsize < n/10; wsize = (int)(1.31 * wsize)) {
+  double ilr_ratio;
+
+  for(int wsize = 100; wsize < n/10; wsize = (double)1.31 * wsize) {
     std::vector<double> windowed_signal;
+
+    fprintf(stderr, "%d\n", wsize);
 
     for(int i = 0; i < n; ++i) {
       windowed_signal.push_back(lpw_.getCoef(wsize, i));
     }
+    
+    signal params;
+    denoiser.denoise(windowed_signal, params);
+
+    const std::vector<int> &right = denoiser.intervalRight();
+    const std::vector<int> &left = denoiser.intervalLeft();
+
+    for(int i = 0; i < n; ++i) {
+      ilr_ratio = 1.0 / std::min((double)right[i] / left[i], 
+                                 (double)left[i] / right[i]);
       
-    intervals.push_back(new TwoWayICIDenoiser());
-    params.push_back(signal());
-    intervals.back()->denoise(windowed_signal, params.back());
+      res[i] += ilr_ratio * params[i];
+      ratios[i] += ilr_ratio;
+    }
   }
 
-  
+  // za pojedini wsize, pomnozim vrijednosti parametara sa min(il/ir, ir/il)
+  // onda to sve zbrojim i pomnozim sa sumom svih tih min
+
+  for(int i = 0; i < n; ++i) {
+    res[i] /= ratios[i];
+  }
 }
 
 void SimpleWindowCombiner::combine(std::vector<double> &res) {
@@ -133,7 +153,7 @@ void ICIWindowCombiner::combine_(
 
       rk = (minub - maxlb) / (2 * gama * sigma);
 
-      if(minub < maxlb || rk < rc) break;  // ICI or RICI
+      if(minub < maxlb) break;// || rk < rc) break;  // ICI or RICI
 
       avg = tavg;
     }

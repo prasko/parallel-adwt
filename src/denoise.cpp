@@ -36,7 +36,7 @@ void OneWayICIDenoiser::denoise(const signal &sig, signal &res) {
       sum += sig[n+k-1];
       tavg = sum / k;
 
-      sigma = sigma_noise / k;
+      sigma = sigma_noise / sqrt(k);
 
       minub = std::min(minub, tavg + gama * sigma);
       maxlb = std::max(maxlb, tavg - gama * sigma);

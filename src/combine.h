@@ -24,7 +24,7 @@ protected:
 class DenoiserWindowCombiner : public WindowCombiner {
 public:
   DenoiserWindowCombiner(Lpw &lpw) : WindowCombiner(lpw) {}
-  void combiner(std::vector<double> &result);
+  void combine(std::vector<double> &result);
 };
 
 class ICIWindowCombiner : public WindowCombiner {

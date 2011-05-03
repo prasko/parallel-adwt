@@ -69,11 +69,11 @@ void adwt(signal &input, signal &A, signal &D) {
   // guess parameter b = Yd(z) / U(z)
   
   Lpw *lsw = new Lsw(yd, x4);
-  //  ConfidenceInterval *ci = new ConfidenceInterval(0.005);
+  // ConfidenceInterval *ci = new ConfidenceInterval(0.005);
   // ConfidenceInterval *ci = new TunnelInterval(0.05, 0.005, 0.005);
   // WindowCombiner *wc = new SimpleWindowCombiner(*lsw, *ci);
-
-  WindowCombiner *wc = new ICIWindowCombiner(*lsw);
+  //WindowCombiner *wc = new ICIWindowCombiner(*lsw);
+  WindowCombiner *wc = new DenoiserWindowCombiner(*lsw);
 
   signal b_res;
   wc->combine(b_res);
