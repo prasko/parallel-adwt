@@ -16,7 +16,6 @@
 #include "denoise.h"
 #include "sysutil.h"
 
-
 /*
   Main function for ADWT calculation.
 */
@@ -49,10 +48,10 @@ void adwt(signal &input, signal &res) {
   ADWTInterpolate sys_ip;
   sys_ip.process(sig_xe);
   
+  // *** PARAMETER GUESSING ***
+
   signal sig_yd;
   sys_add.add(sig_xo, sys_ip.sig_x2(), -1.0, sig_yd);
-
-  // *** PARAMETER GUESSING ***
 
   Lpw *lsw = new Lsw(sig_yd, sys_ip.sig_x4());
   //WindowCombiner *wc = new DenoiserWindowCombiner(*lsw);
@@ -64,15 +63,15 @@ void adwt(signal &input, signal &res) {
   Denoiser *dns = new TwoWayICIDenoiser(4.4, 0.7, 0.2);
   dns->denoise(b_res, b_dns);
 
-  for(int i = 0; i < (int)b_res.size(); ++i) { 
-    printf("(%lf %lf)", b_res[i], b_dns[i]);
-  }
+  // for(int i = 0; i < (int)b_res.size(); ++i) { 
+  //   printf("(%lf %lf)", b_res[i], b_dns[i]);
+  // }
 
   // add up
 
   signal sig_d;
-      
   sys_ip.finalize(sig_xo, true, &b_dns, sig_d);
+  //sys_ip.finalize(sig_xo, true, NULL, sig_d);
   
   // *** UPDATE ***
 
@@ -81,6 +80,26 @@ void adwt(signal &input, signal &res) {
   ADWTUpdate sys_up;
   sys_up.process(sig_d);
   sys_up.finalize(sig_xe, true, NULL, sig_a);
+
+  // for(int i = 0; i < (int)sig_a.size(); ++i) {
+  //   printf("(%f %f)", sig_a[i], sig_d[i]);
+  // }
+
+  // *** RECONSTRUCTION ***
+
+  signal sig_ye, sig_yo;
+
+  sys_up.finalize(sig_a, false, NULL, sig_ye);
+  sys_ip.process(sig_ye);
+  sys_ip.finalize(sig_d, false, &b_dns, sig_yo);
+  //sys_ip.finalize(sig_d, false, NULL, sig_yo);
+
+  assert(res.size() == 0);
+  
+  for(int i = 0; i < (int)sig_ye.size(); ++i) {
+    res.push_back(sig_ye[i]);
+    res.push_back(sig_yo[i]);
+  }
 }
 
 void ADWTSubSystem::finalize(const signal &input, bool positive, 
@@ -91,12 +110,12 @@ void ADWTSubSystem::finalize(const signal &input, bool positive,
 
   Sumator sys_sum(res);
   sys_sum.sumSignal(input, true);
-  sys_sum.sumSignal(x2_, x2_prefix());
-  
+  sys_sum.sumSignal(x2_, positive ? x2_prefix() : !x2_prefix());
+
   if(param) {
-    sys_sum.sumMultiply(x4_, *param, x4_prefix());
+    sys_sum.sumMultiply(x4_, *param, positive ? x4_prefix() : !x4_prefix());
   } else {
-    sys_sum.sumSignal(x4_, x4_prefix());
+    sys_sum.sumSignal(x4_, positive ? x4_prefix() : !x4_prefix());
   }
 }
 

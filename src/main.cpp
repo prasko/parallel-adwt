@@ -6,11 +6,8 @@
 #include <cstdio>
 #include <vector>
 
+#include "adwt.h"
 #include "denoise.h"
-
-typedef std::vector<double> signal;
-
-void adwt(signal &input, signal &result);
 
 int main() {
   int width;
@@ -34,6 +31,9 @@ int main() {
   signal result;
   adwt(input, result);
 
+  for(int i = 0; i < (int)result.size(); ++i) {
+    printf("%lf\n", result[i]);
+  }
   
   return 0;
 }

@@ -9,6 +9,8 @@
 
 typedef std::vector<double> signal;
 
+void adwt(signal &input, signal &result);
+
 struct ADWTSubSystem {
   ADWTSubSystem() {}
 
