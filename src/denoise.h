@@ -10,6 +10,7 @@
 
 typedef std::vector<double> signal;
 
+
 struct Denoiser {
   Denoiser() : result_(NULL) {}
   virtual void denoise(const signal &sig, signal &res) = 0;
@@ -19,7 +20,6 @@ protected:
 };
 
 struct ICIDenoiser : public Denoiser {
-public:
  ICIDenoiser(double gama=4.4, double rc=0.85, double sigma=0.2) : 
    Denoiser(), gama_(gama), rc_(rc), sigma_(sigma) {}
 

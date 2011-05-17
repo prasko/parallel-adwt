@@ -10,7 +10,7 @@
 
 typedef std::vector<double> signal;
 
-void adwt(signal &input, signal &A, signal &D);
+void adwt(signal &input, signal &result);
 
 int main() {
   int width;
@@ -31,9 +31,8 @@ int main() {
   //   printf("%lf ", res[i]);
   // printf("\n");
 
-  signal resultA;
-  signal resultD;
-  adwt(input, resultA, resultD);
+  signal result;
+  adwt(input, result);
 
   
   return 0;

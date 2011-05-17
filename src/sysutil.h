@@ -37,7 +37,9 @@ private:
 
 class Multiply2 : public System {
 public:
-  Multiply2(const double constant=1.0) : System(constant) {}
+  Multiply2(const double constant) : System(constant) {}
+  Multiply2(const bool constant=true) : System(constant ? 1.0 : -1.0) {}
+
   void multiply(const signal &s1, const signal &s2, signal &res);
 };
 
@@ -52,6 +54,8 @@ public:
   Sumator(signal &result) : result_(&result) {}
   void init(signal &result);
   void sumSignal(const signal &signal, const double coef);
+  void sumSignal(const signal &signal, const bool prefix);
+  void sumMultiply(const signal &s1, const signal &s2, const bool prefix);
 
 private:
   signal *result_;

@@ -68,3 +68,33 @@ void Sumator::sumSignal(const signal &signal, const double coef) {
   for(int i = 0; i < (int)signal.size(); ++i) 
     *(result_->begin() + i) += coef * signal[i];
 }
+
+void Sumator::sumSignal(const signal &signal, const bool prefix) {
+  if(signal.size() > result_->size())
+    result_->resize(signal.size());
+    
+  if(prefix) {
+    for(int i = 0; i < (int)signal.size(); ++i) {
+      *(result_->begin() + i) += signal[i];
+    }
+  } else {
+    for(int i = 0; i < (int)signal.size(); ++i) {
+      *(result_->begin() + i) -= signal[i];
+    }
+  }
+}
+
+void Sumator::sumMultiply(const signal &s1, const signal &s2, bool prefix) {
+  if(s1.size() > result_->size() || s2.size() > result_->size())
+    result_->resize(std::max(s1.size(), s2.size()));
+    
+  if(prefix) {
+    for(int i = 0; i < (int)std::min(s1.size(), s2.size()); ++i) {
+      *(result_->begin() + i) += s1[i] * s2[i];
+    }
+  } else {
+    for(int i = 0; i < (int)std::min(s1.size(), s2.size()); ++i) {
+      *(result_->begin() + i) -= s1[i] * s2[i];
+    }
+  }
+}
