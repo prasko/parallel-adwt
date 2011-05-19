@@ -10,7 +10,6 @@
 
 typedef std::vector<double> signal;
 
-
 struct Denoiser {
   Denoiser() : result_(NULL) {}
   virtual void denoise(const signal &sig, signal &res) = 0;

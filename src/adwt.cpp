@@ -11,16 +11,31 @@
 #include <utility>
 
 #include "adwt.h"
-#include "lpw.h"
 #include "combine.h"
-#include "denoise.h"
 #include "sysutil.h"
+
+static signal* combineDenoise(const signal &input, const ADWTSubSystem &subsys,
+                          WindowCombiner *wcombiner) {
+
+  Add2 adder;
+
+  signal *param = new signal();
+  signal sigd;
+
+  adder.add(input, subsys.sig_x2(), (subsys.x2_prefix() ? 1.0 : -1.0), sigd);
+  wcombiner->setLpwData(sigd, subsys.sig_x4());
+  wcombiner->combine(*param);
+
+  return param;
+}
 
 /*
   Main function for ADWT calculation.
 */
-void adwt(signal &input, signal &res) {
-  Add2 sys_add;
+
+void adwt(signal &input, WindowCombiner *wcombiner, GuessMode adwt_mode,
+          signal &res, signal &sig_a, signal &sig_d) {
+
   Decimator sys_dec;
 
   // *** PREPARATION ***
@@ -48,51 +63,41 @@ void adwt(signal &input, signal &res) {
   ADWTInterpolate sys_ip;
   sys_ip.process(sig_xe);
   
-  // *** PARAMETER GUESSING ***
+  // guess parameter b
 
-  signal sig_yd;
-  sys_add.add(sig_xo, sys_ip.sig_x2(), -1.0, sig_yd);
+  signal *param_b = NULL;
 
-  Lpw *lsw = new Lsw(sig_yd, sys_ip.sig_x4());
-  //WindowCombiner *wc = new DenoiserWindowCombiner(*lsw);
-  WindowCombiner *wc = new ICIWindowCombiner(*lsw);
-
-  signal b_res, b_dns;
-  wc->combine(b_res);
-
-  Denoiser *dns = new TwoWayICIDenoiser(4.4, 0.7, 0.2);
-  dns->denoise(b_res, b_dns);
-
-  // for(int i = 0; i < (int)b_res.size(); ++i) { 
-  //   printf("(%lf %lf)", b_res[i], b_dns[i]);
-  // }
-
-  // add up
-
-  signal sig_d;
-  sys_ip.finalize(sig_xo, true, &b_dns, sig_d);
-  //sys_ip.finalize(sig_xo, true, NULL, sig_d);
+  if(adwt_mode == GUESS_B) {
+    param_b = combineDenoise(sig_xo, sys_ip, wcombiner);
+    sys_ip.finalize(sig_xo, true, param_b, sig_d);
+  } else {
+    sys_ip.finalize(sig_xo, true, NULL, sig_d);
+  }
   
   // *** UPDATE ***
 
-  signal sig_a;
-
   ADWTUpdate sys_up;
   sys_up.process(sig_d);
-  sys_up.finalize(sig_xe, true, NULL, sig_a);
 
-  // for(int i = 0; i < (int)sig_a.size(); ++i) {
-  //   printf("(%f %f)", sig_a[i], sig_d[i]);
-  // }
+  // guess parameter c
+
+  signal *param_c = NULL;
+
+  if(adwt_mode == GUESS_C) {
+    param_c = combineDenoise(sig_xe, sys_up, wcombiner);
+    sys_up.finalize(sig_xe, true, param_c, sig_a);
+  } else {
+    sys_up.finalize(sig_xe, true, NULL, sig_a);
+  }
 
   // *** RECONSTRUCTION ***
 
   signal sig_ye, sig_yo;
 
-  sys_up.finalize(sig_a, false, NULL, sig_ye);
+  sys_up.finalize(sig_a, false, param_c, sig_ye);
+
   sys_ip.process(sig_ye);
-  sys_ip.finalize(sig_d, false, &b_dns, sig_yo);
-  //sys_ip.finalize(sig_d, false, NULL, sig_yo);
+  sys_ip.finalize(sig_d, false, param_b, sig_yo);
 
   assert(res.size() == 0);
   
@@ -100,6 +105,11 @@ void adwt(signal &input, signal &res) {
     res.push_back(sig_ye[i]);
     res.push_back(sig_yo[i]);
   }
+
+  // *** CLEAN ***
+
+  if(param_b) delete param_b;
+  if(param_c) delete param_c;
 }
 
 void ADWTSubSystem::finalize(const signal &input, bool positive, 
@@ -136,8 +146,8 @@ void ADWTInterpolate::process_(const signal &input) {
   systriple1.process(x2_, x4_);
 }
 
-bool ADWTInterpolate::x2_prefix() { return false; }
-bool ADWTInterpolate::x4_prefix() { return true; }
+bool ADWTInterpolate::x2_prefix() const { return false; }
+bool ADWTInterpolate::x4_prefix() const { return true; }
 
 void ADWTUpdate::process_(const signal &input) {
   // linear update
@@ -156,5 +166,5 @@ void ADWTUpdate::process_(const signal &input) {
   systriple1.process(x2_, x4_);
 }
 
-bool ADWTUpdate::x2_prefix() { return true; }
-bool ADWTUpdate::x4_prefix() { return false; }
+bool ADWTUpdate::x2_prefix() const { return true; }
+bool ADWTUpdate::x4_prefix() const { return false; }

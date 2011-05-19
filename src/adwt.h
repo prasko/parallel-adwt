@@ -7,9 +7,14 @@
 
 #include <vector>
 
+class WindowCombiner;
+
 typedef std::vector<double> signal;
 
-void adwt(signal &input, signal &result);
+enum GuessMode { NONE, GUESS_B, GUESS_C };
+
+void adwt(signal &input, WindowCombiner *wcombiner, GuessMode adwt_mode,
+          signal &res, signal &sig_a, signal &sig_d);
 
 struct ADWTSubSystem {
   ADWTSubSystem() {}
@@ -26,10 +31,12 @@ struct ADWTSubSystem {
   void finalize(const signal &input, bool positive, 
                 const signal *param, signal &res);
 
+
+  virtual bool x2_prefix() const = 0;
+  virtual bool x4_prefix() const = 0;
+
 protected:
   virtual void process_(const signal &input) = 0;
-  virtual bool x2_prefix() = 0;
-  virtual bool x4_prefix() = 0;
 
   signal x2_;
   signal x4_;
@@ -39,18 +46,16 @@ struct ADWTInterpolate : public ADWTSubSystem {
   ADWTInterpolate() {}
   void process_(const signal &input);
 
-private:
-  bool x2_prefix();
-  bool x4_prefix();
+  bool x2_prefix() const;
+  bool x4_prefix() const;
 };
 
 struct ADWTUpdate : public ADWTSubSystem {
   ADWTUpdate() {}
   void process_(const signal &input);  
 
-private:
-  bool x2_prefix();
-  bool x4_prefix();
+  bool x2_prefix() const;
+  bool x4_prefix() const;
 };
 
 

@@ -14,29 +14,47 @@ typedef std::vector<double> signal;
 
 class WindowCombiner {
 public:
-  WindowCombiner(Lpw &lpw) : lpw_(lpw) {}
+  WindowCombiner() {}
   virtual void combine(std::vector<double> &result) = 0;
+  virtual void setLpwData(const signal &y, const signal &x) = 0;
+};
+
+class LpwCombiner : public WindowCombiner {
+public:
+  LpwCombiner(Lpw &lpw) : lpw_(lpw) {}
+
+  void setLpwData(const signal &y, const signal &x) {
+    lpw_.setLpwData(y, x);
+  }
 
 protected:
   Lpw &lpw_;
 };
 
-class DenoiserWindowCombiner : public WindowCombiner {
+class DenoiserWindowCombiner : public LpwCombiner {
 public:
-  DenoiserWindowCombiner(Lpw &lpw) : WindowCombiner(lpw) {}
+  DenoiserWindowCombiner(Lpw &lpw) : LpwCombiner(lpw) {}
   void combine(std::vector<double> &result);
 };
 
-class ICIWindowCombiner : public WindowCombiner {
+class ICIWindowCombiner : public LpwCombiner {
 public:
-  ICIWindowCombiner(Lpw &lpw) : WindowCombiner(lpw) {}
+  ICIWindowCombiner(Lpw &lpw, double gama, double rc, double sigma, bool rici): 
+    LpwCombiner(lpw), gama_(gama), rc_(rc), sigma_(sigma), rici_(rici) {}
+
   void combine(std::vector<double> &result);
 
 private:
   void combine_(std::vector< std::pair<double, int> > &, int);
+
+  const double gama_;
+  const double rc_;
+  const double sigma_;
+  
+  const bool rici_;
 };
 
-class SimpleWindowCombiner : public WindowCombiner {
+class SimpleWindowCombiner : public LpwCombiner {
 public:
 
   class ConfidenceInterval {
@@ -64,7 +82,7 @@ public:
   };
 
   SimpleWindowCombiner(Lpw &lpw, ConfidenceInterval &interval) : 
-    WindowCombiner(lpw), interval_(interval) {}
+    LpwCombiner(lpw), interval_(interval) {}
 
   void combine(std::vector<double> &result);
 

@@ -117,9 +117,9 @@ void SimpleWindowCombiner::combine(std::vector<double> &res) {
 void ICIWindowCombiner::combine_(
   std::vector<std::pair<double,int> > &res, int dir=0) {
 
-  static const double gama = 4.4;
-  static const double base_sigma = 0.2;
-  static const double rc = 0.85;
+  static const double gama = gama_;
+  static const double base_sigma = sigma_;
+  static const double rc = rc_;
   
   const int len = lpw_.length();
   const int max_wsize = len/10;
@@ -153,7 +153,7 @@ void ICIWindowCombiner::combine_(
 
       rk = (minub - maxlb) / (2 * gama * sigma);
 
-      if(minub < maxlb) break;// || rk < rc) break;  // ICI or RICI
+      if(minub < maxlb || (rici_ && rk < rc)) break;  // ICI or RICI
 
       avg = tavg;
     }

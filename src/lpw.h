@@ -8,7 +8,7 @@
 #include <cassert>
 #include <vector>
 
-using std::vector;
+typedef std::vector<double> signal;
 
 /*
   Lpw is an interface for calculating parameter B such that Y is best
@@ -21,18 +21,21 @@ using std::vector;
  */
 class Lpw {
 public:
-  Lpw(const vector<double> &y, const vector<double> &x) : y_(y), x_(x) {
-    assert(x.size() == y.size());
-    n_ = x.size();
+  Lpw() {}
+
+  Lpw(const signal &y, const signal &x) : n_(y.size()), y_(&y), x_(&x) { 
+    assert(y.size() == x.size());
   }
 
   virtual double getCoef(const int wsize, const int wpos) = 0;
+  virtual void setLpwData(const signal &y, const signal &x) = 0;
+
   int length() const { return n_; }
   
 protected:
   int n_;
-  const vector<double> &y_;
-  const vector<double> &x_;
+  const signal *y_;
+  const signal *x_;
 };
 
 /*
@@ -44,12 +47,15 @@ protected:
  */
 class Lsw : public Lpw {
 public:
-  Lsw(const vector<double> &y, const vector<double> &x) : Lpw(y, x) { init(); }
+  Lsw() {}
+  Lsw(const signal &y, const signal &x) : Lpw(y, x) { init(); }
+
   double getCoef(const int wsize, const int wpos);
+  void setLpwData(const signal &y, const signal &x);
 
 protected:
-  vector<double> xxacc_;
-  vector<double> xyacc_;  
+  signal xxacc_;
+  signal xyacc_;  
 
 private:
   void init();

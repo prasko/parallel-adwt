@@ -17,8 +17,8 @@ void Lsw::init() {
   xyacc_.push_back(0.0);
 
   for(int i = 0; i < n_; ++i) {
-    xxacc_.push_back(xxacc_[i] + x_[i] * x_[i]);
-    xyacc_.push_back(xyacc_[i] + x_[i] * y_[i]);
+    xxacc_.push_back(xxacc_[i] + x_->at(i) * x_->at(i));
+    xyacc_.push_back(xyacc_[i] + x_->at(i) * y_->at(i));
   }
 }
 
@@ -28,7 +28,19 @@ inline std::pair<int,int> bounds(const int wsize, const int wpos, const int n) {
 }
 
 double Lsw::getCoef(const int wsize, const int wpos) {
+  assert(y_ && x_);
+
   std::pair<int,int> b = bounds(wsize, wpos, n_);
   return (xyacc_[b.second+1] - xyacc_[b.first+1]) / 
     (xxacc_[b.second+1] - xxacc_[b.first+1]);
+}
+
+void Lsw::setLpwData(const signal &y, const signal &x) {
+  assert(y.size() == x.size());
+
+  y_ = &y;
+  x_ = &x;
+  n_ = y.size();
+
+  init();
 }

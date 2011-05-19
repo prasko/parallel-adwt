@@ -7,7 +7,7 @@
 #include <vector>
 
 #include "adwt.h"
-#include "denoise.h"
+#include "combine.h"
 
 int main() {
   int width;
@@ -19,21 +19,19 @@ int main() {
   for(int i = 0; i < width; ++i) {
     scanf("%lf", &input[i]);
   }
-  
-  // Denoiser *dns = new DenoiserICI;
-  // signal res;
-  // dns->denoise(input, res);
-  // assert(input.size() == res.size());
-  // for(int i = 0; i < (int)res.size(); ++i)
-  //   printf("%lf ", res[i]);
-  // printf("\n");
 
-  signal result;
-  adwt(input, result);
+  Lpw *lpw = new Lsw();
+  WindowCombiner *wc = new ICIWindowCombiner(*lpw, 4.4, 0.85, 0.2, true);
+
+  signal result, A, D;
+  adwt(input, wc, GUESS_C, result, A, D);
 
   for(int i = 0; i < (int)result.size(); ++i) {
     printf("%lf\n", result[i]);
   }
+
+  delete lpw;
+  delete wc;
   
   return 0;
 }
