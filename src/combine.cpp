@@ -44,6 +44,8 @@ namespace Combine {
         res[i] += ilr_ratio * denoise_res->getDenoised(i);
         ratios[i] += ilr_ratio;
       }
+
+      delete denoise_res;
     }
 
     // za pojedini wsize, pomnozim vrijednosti parametara sa min(il/ir, ir/il)
