@@ -1,4 +1,5 @@
 #ignore bin and object files
 
-obj/*
+bin/*
 *~
+adwt_[^/]*
