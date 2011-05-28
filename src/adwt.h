@@ -7,7 +7,11 @@
 
 #include <vector>
 
-class WindowCombiner;
+namespace Combine {
+  class WindowCombiner;
+}
+
+using Combine::WindowCombiner;
 
 typedef std::vector<double> signal;
 

@@ -14,8 +14,10 @@
 #include "combine.h"
 #include "sysutil.h"
 
+using Combine::WindowCombiner;
+
 static signal* combineDenoise(const signal &input, const ADWTSubSystem &subsys,
-                          WindowCombiner *wcombiner) {
+                              WindowCombiner *wcombiner) {
 
   Add2 adder;
 

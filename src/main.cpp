@@ -21,7 +21,8 @@ int main() {
   }
 
   Lpw *lpw = new Lsw();
-  WindowCombiner *wc = new ICIWindowCombiner(*lpw, 4.4, 0.85, 0.2, true);
+  Combine::WindowCombiner *wc = 
+    new Combine::ICIWindowCombiner(*lpw, 4.4, 0.85, 0.2, true);
 
   signal result, A, D;
   adwt(input, wc, GUESS_C, result, A, D);

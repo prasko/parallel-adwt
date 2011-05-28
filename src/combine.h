@@ -12,98 +12,111 @@
 
 typedef std::vector<double> signal;
 
-class WindowCombiner {
-public:
-  WindowCombiner() {}
-  virtual void combine(std::vector<double> &result) = 0;
-  virtual void setLpwData(const signal &y, const signal &x) = 0;
-};
+namespace Denoise {
+  class ICIDenoiser;
+}
 
-class CUDACombiner : public WindowCombiner {
-public:
-  CUDACombiner() {}
+namespace Combine {
 
-  void combine(std::vector<double> &result);
-
-  void setLpwData(const signal &y, const signal &x) {
-    x_ = &x;
-    y_ = &y;
-  }
-  
-private:
-  const signal *y_;
-  const signal *x_;
-};
-
-class LpwCombiner : public WindowCombiner {
-public:
-  LpwCombiner(Lpw &lpw) : lpw_(lpw) {}
-
-  void setLpwData(const signal &y, const signal &x) {
-    lpw_.setLpwData(y, x);
-  }
-
-protected:
-  Lpw &lpw_;
-};
-
-class DenoiserWindowCombiner : public LpwCombiner {
-public:
-  DenoiserWindowCombiner(Lpw &lpw) : LpwCombiner(lpw) {}
-  void combine(std::vector<double> &result);
-};
-
-class ICIWindowCombiner : public LpwCombiner {
-public:
-  ICIWindowCombiner(Lpw &lpw, double gama, double rc, double sigma, bool rici): 
-    LpwCombiner(lpw), gama_(gama), rc_(rc), sigma_(sigma), rici_(rici) {}
-
-  void combine(std::vector<double> &result);
-
-private:
-  void combine_(std::vector< std::pair<double, int> > &, int);
-
-  const double gama_;
-  const double rc_;
-  const double sigma_;
-  
-  const bool rici_;
-};
-
-class SimpleWindowCombiner : public LpwCombiner {
-public:
-
-  class ConfidenceInterval {
+  class WindowCombiner {
   public:
-    ConfidenceInterval(double base) : base_(base) {}
-    bool inside(int pos, double value) { return fabs(value) < interval(pos); }
-    virtual double interval(const int pos) { return base_; }
-
-  protected:
-    const double base_;
+    WindowCombiner() {}
+    virtual void combine(std::vector<double> &result) = 0;
+    virtual void setLpwData(const signal &y, const signal &x) = 0;
   };
 
-  class TunnelInterval : public ConfidenceInterval {
+  class CUDACombiner : public WindowCombiner {
   public:
-    TunnelInterval(double upper, double lower, double rate) : 
-      ConfidenceInterval(upper), lower_(lower), rate_(rate) {}
+    CUDACombiner() {}
+
+    void combine(std::vector<double> &result);
+
+    void setLpwData(const signal &y, const signal &x) {
+      x_ = &x;
+      y_ = &y;
+    }
   
-    virtual double interval(int pos) { 
-      return std::max(lower_, base_ - pos * rate_ * (base_-lower_) );
+  private:
+    const signal *y_;
+    const signal *x_;
+  };
+
+  class LpwCombiner : public WindowCombiner {
+  public:
+    LpwCombiner(Lpw &lpw) : lpw_(lpw) {}
+
+    void setLpwData(const signal &y, const signal &x) {
+      lpw_.setLpwData(y, x);
     }
 
   protected:
-    const double lower_;
-    const double rate_;
+    Lpw &lpw_;
   };
 
-  SimpleWindowCombiner(Lpw &lpw, ConfidenceInterval &interval) : 
-    LpwCombiner(lpw), interval_(interval) {}
+  class DenoiserWindowCombiner : public LpwCombiner {
+  public:
+    DenoiserWindowCombiner(Lpw &lpw, Denoise::ICIDenoiser &denoiser) : 
+      LpwCombiner(lpw), denoiser_(denoiser) {}
 
-  void combine(std::vector<double> &result);
+    void combine(std::vector<double> &result);
 
-private:
-  ConfidenceInterval &interval_;
-};
+  private:
+    Denoise::ICIDenoiser &denoiser_;
+  };
+
+  class ICIWindowCombiner : public LpwCombiner {
+  public:
+    ICIWindowCombiner(Lpw &lpw, double gama, double rc, double sigma, bool rici): 
+      LpwCombiner(lpw), gama_(gama), rc_(rc), sigma_(sigma), rici_(rici) {}
+
+    void combine(std::vector<double> &result);
+
+  private:
+    void combine_(std::vector< std::pair<double, int> > &, int);
+
+    const double gama_;
+    const double rc_;
+    const double sigma_;
+  
+    const bool rici_;
+  };
+
+  class SimpleWindowCombiner : public LpwCombiner {
+  public:
+
+    class ConfidenceInterval {
+    public:
+      ConfidenceInterval(double base) : base_(base) {}
+      bool inside(int pos, double value) { return fabs(value) < interval(pos); }
+      virtual double interval(const int pos) { return base_; }
+
+    protected:
+      const double base_;
+    };
+
+    class TunnelInterval : public ConfidenceInterval {
+    public:
+      TunnelInterval(double upper, double lower, double rate) : 
+        ConfidenceInterval(upper), lower_(lower), rate_(rate) {}
+  
+      virtual double interval(int pos) { 
+        return std::max(lower_, base_ - pos * rate_ * (base_-lower_) );
+      }
+
+    protected:
+      const double lower_;
+      const double rate_;
+    };
+
+    SimpleWindowCombiner(Lpw &lpw, ConfidenceInterval &interval) : 
+      LpwCombiner(lpw), interval_(interval) {}
+
+    void combine(std::vector<double> &result);
+
+  private:
+    ConfidenceInterval &interval_;
+  };
+
+}  // namespace
 
 #endif  // ADWT_COMBINE_H
