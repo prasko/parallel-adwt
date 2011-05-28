@@ -40,7 +40,8 @@ float* multiply(const float *a1, const float *a2, const int size) {
 }
 
 /*
-  Allocates memory of size 4 * n bytes on device and copies input array to device.
+  Allocates memory of size 4 * n bytes on device and copies input 
+  array to device.
 */
 float* alloc_cpy(const float *src, const int n, const cudaMemcpyKind type) {
   float *dest;
@@ -69,7 +70,9 @@ __global__ void lsw_kernel(const float *dx, const float *dy,
   for(int i = 0; i < tspread; ++i) {
     if(wpos + wsize + 2 >= n+1) return;
     
-    float b = (dxy[wpos + wsize + 2] - dxy[wpos]) / (dxx[wpos + wsize + 2] - dxx[wpos]);
+    float b = (dxy[wpos + wsize + 2] - dxy[wpos]) / 
+      (dxx[wpos + wsize + 2] - dxx[wpos]);
+
     float err = 0.0f, delta;
 
     for(int j = wpos; j < wpos + wsize + 2; ++j) {

@@ -19,6 +19,22 @@ public:
   virtual void setLpwData(const signal &y, const signal &x) = 0;
 };
 
+class CUDACombiner : public WindowCombiner {
+public:
+  CUDACombiner() {}
+
+  void combine(std::vector<double> &result);
+
+  void setLpwData(const signal &y, const signal &x) {
+    x_ = &x;
+    y_ = &y;
+  }
+  
+private:
+  const signal *y_;
+  const signal *x_;
+};
+
 class LpwCombiner : public WindowCombiner {
 public:
   LpwCombiner(Lpw &lpw) : lpw_(lpw) {}

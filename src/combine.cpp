@@ -10,8 +10,10 @@
 #include "combine.h"
 #include "denoise.h"
 
+using Denoise::ICIDenoiser;
+
 void DenoiserWindowCombiner::combine(std::vector<double> &res) {
-  TwoWayICIDenoiser denoiser;
+  ICIDenoiser denoiser;
   int n = lpw_.length();
 
   std::vector<double> ratios(n);
@@ -28,17 +30,17 @@ void DenoiserWindowCombiner::combine(std::vector<double> &res) {
       windowed_signal.push_back(lpw_.getCoef(wsize, i));
     }
     
-    signal params;
-    denoiser.denoise(windowed_signal, params);
+    ICIDenoiser::Result *denoise_res = 
+      dynamic_cast<ICIDenoiser::Result*>(denoiser.denoise(windowed_signal));
 
-    const std::vector<int> &right = denoiser.intervalRight();
-    const std::vector<int> &left = denoiser.intervalLeft();
-
+    int left, right;
     for(int i = 0; i < n; ++i) {
-      ilr_ratio = 1.0 / std::min((double)right[i] / left[i], 
-                                 (double)left[i] / right[i]);
+      left = denoise_res->getLeft(i);
+      right = denoise_res->getRight(i);
+
+      ilr_ratio = 1.0 / std::min((double)right / left, (double)left / right);
       
-      res[i] += ilr_ratio * params[i];
+      res[i] += ilr_ratio * denoise_res->getDenoised(i);
       ratios[i] += ilr_ratio;
     }
   }
