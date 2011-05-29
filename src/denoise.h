@@ -48,16 +48,20 @@ namespace Denoise {
     virtual Result* denoise(const Signal &sig) = 0;
 
     /* Performs denoising on multiple signals. */
-    virtual void denoiseMultiple(
-      const std::vector<Signal> &input, std::vector<Result*> &res);
+    virtual void denoiseMultiple(const std::vector<Signal> &input, 
+                                 std::vector<Result*> &res);
   };
 
   /* Denoiser for suitable for flat, rectangle-like signals, uses ICI method.*/
   struct ICIDenoiser : public Denoiser {
     
     /* Creates new ICI Denoiser based on ICI parameters. */
-    ICIDenoiser(double gama=4.4, double rc=0.85, double sigma=0.2) : 
-      Denoiser(), gama_(gama), rc_(rc), sigma_(sigma) {}
+    ICIDenoiser(double gama=4.4, 
+                double rc=0.85, 
+                double sigma=0.2) : Denoiser(), 
+                                    gama(gama), 
+                                    rc(rc), 
+                                    sigma(sigma) {}
 
     /* 
        ICI result class, extends basic denoiser result class.  
@@ -83,11 +87,10 @@ namespace Denoise {
     /* Denoising method. */
     virtual Denoiser::Result* denoise(const Signal &sig);
 
-  protected:
     /* ICI parameters */
-    const double gama_;
-    const double rc_;
-    const double sigma_;
+    const double gama;
+    const double rc;
+    const double sigma;
 
   private:
     void denoise_(const Signal &sig, Signal &res, std::vector<int> &interval);
@@ -97,15 +100,24 @@ namespace Denoise {
   struct CUDAICIDenoiser : public ICIDenoiser {
 
     /* Creates new CUDA ICI Denoiser based on same ICI parameters. */
-    CUDAICIDenoiser(double gama=4.4, double rc=0.85, double sigma=0.2) :
-      ICIDenoiser(gama, rc, sigma) {}
+    CUDAICIDenoiser(int block_size=16, 
+                    int thread_jobs=32,
+                    double gama=4.4, 
+                    double rc=0.85, 
+                    double sigma=0.2) : ICIDenoiser(gama, rc, sigma), 
+                                        block_size(block_size), 
+                                        thread_jobs(thread_jobs) {}
 
     /* Denoising methods. */
     virtual Denoiser::Result* denoise(const Signal &sig);
-    virtual void denoiseMultiple(
-      const std::vector<Signal> &input, std::vector<Denoiser::Result*> &res);
-  };
 
+    virtual void denoiseMultiple(const std::vector<Signal> &input, 
+                                 std::vector<Denoiser::Result*> &res);
+
+    /* CUDA parameters */
+    const int block_size;
+    const int thread_jobs;
+  };
 }  // namespace
 
 #endif  // ADWT_DENOISE_H
