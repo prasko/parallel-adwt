@@ -16,13 +16,13 @@
 
 using Combine::WindowCombiner;
 
-static signal* combineDenoise(const signal &input, const ADWTSubSystem &subsys,
+static Signal* combineDenoise(const Signal &input, const ADWTSubSystem &subsys,
                               WindowCombiner *wcombiner) {
 
   Add2 adder;
 
-  signal *param = new signal();
-  signal sigd;
+  Signal *param = new Signal();
+  Signal sigd;
 
   adder.add(input, subsys.sig_x2(), (subsys.x2_prefix() ? 1.0 : -1.0), sigd);
   wcombiner->setLpwData(sigd, subsys.sig_x4());
@@ -35,8 +35,8 @@ static signal* combineDenoise(const signal &input, const ADWTSubSystem &subsys,
   Main function for ADWT calculation.
 */
 
-void adwt(signal &input, WindowCombiner *wcombiner, GuessMode adwt_mode,
-          signal &res, signal &sig_a, signal &sig_d) {
+void adwt(Signal &input, WindowCombiner *wcombiner, GuessMode adwt_mode,
+          Signal &res, Signal &sig_a, Signal &sig_d) {
 
   Decimator sys_dec;
 
@@ -50,8 +50,8 @@ void adwt(signal &input, WindowCombiner *wcombiner, GuessMode adwt_mode,
   const int zeroes_front = 2;
   const int zeroes_back = 1;
 
-  signal sig_xe(zeroes_front);  // Xe(z)
-  signal sig_xo(zeroes_front);  // Xo(z)
+  Signal sig_xe(zeroes_front);  // Xe(z)
+  Signal sig_xo(zeroes_front);  // Xo(z)
 
   sys_dec.decimate(input, sig_xe, sig_xo);
   
@@ -67,7 +67,7 @@ void adwt(signal &input, WindowCombiner *wcombiner, GuessMode adwt_mode,
   
   // guess parameter b
 
-  signal *param_b = NULL;
+  Signal *param_b = NULL;
 
   if(adwt_mode == GUESS_B) {
     param_b = combineDenoise(sig_xo, sys_ip, wcombiner);
@@ -83,7 +83,7 @@ void adwt(signal &input, WindowCombiner *wcombiner, GuessMode adwt_mode,
 
   // guess parameter c
 
-  signal *param_c = NULL;
+  Signal *param_c = NULL;
 
   if(adwt_mode == GUESS_C) {
     param_c = combineDenoise(sig_xe, sys_up, wcombiner);
@@ -94,7 +94,7 @@ void adwt(signal &input, WindowCombiner *wcombiner, GuessMode adwt_mode,
 
   // *** RECONSTRUCTION ***
 
-  signal sig_ye, sig_yo;
+  Signal sig_ye, sig_yo;
 
   sys_up.finalize(sig_a, false, param_c, sig_ye);
 
@@ -114,8 +114,8 @@ void adwt(signal &input, WindowCombiner *wcombiner, GuessMode adwt_mode,
   if(param_c) delete param_c;
 }
 
-void ADWTSubSystem::finalize(const signal &input, bool positive, 
-                             const signal *param, signal &res) {
+void ADWTSubSystem::finalize(const Signal &input, bool positive, 
+                             const Signal *param, Signal &res) {
   assert(res.size() == 0);
   assert(input.size() == x2_.size());
   assert(param == NULL || param->size() == input.size());
@@ -131,7 +131,7 @@ void ADWTSubSystem::finalize(const signal &input, bool positive,
   }
 }
 
-void ADWTInterpolate::process_(const signal &input) {
+void ADWTInterpolate::process_(const Signal &input) {
   // linear interpolation
   PolySystem systwin1(0.5);
   systwin1.addMember(0, 1);
@@ -151,7 +151,7 @@ void ADWTInterpolate::process_(const signal &input) {
 bool ADWTInterpolate::x2_prefix() const { return false; }
 bool ADWTInterpolate::x4_prefix() const { return true; }
 
-void ADWTUpdate::process_(const signal &input) {
+void ADWTUpdate::process_(const Signal &input) {
   // linear update
   PolySystem systwin2(0.25);
   systwin2.addMember(0, 1);

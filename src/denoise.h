@@ -22,7 +22,7 @@
 #include <vector>
 #include <utility>
 
-typedef std::vector<double> signal;
+typedef std::vector<double> Signal;
 
 namespace Denoise {
 
@@ -41,15 +41,15 @@ namespace Denoise {
 
     protected:
       /* Denoised signal */
-      signal dns_signal; 
+      Signal dns_signal; 
     };
 
     /* Performs denoising on a single signal. */
-    virtual Result* denoise(const signal &sig) = 0;
+    virtual Result* denoise(const Signal &sig) = 0;
 
     /* Performs denoising on multiple signals. */
     virtual void denoiseMultiple(
-      const std::vector<signal> &input, std::vector<Result*> &res);
+      const std::vector<Signal> &input, std::vector<Result*> &res);
   };
 
   /* Denoiser for suitable for flat, rectangle-like signals, uses ICI method.*/
@@ -81,7 +81,7 @@ namespace Denoise {
     };
 
     /* Denoising method. */
-    virtual Denoiser::Result* denoise(const signal &sig);
+    virtual Denoiser::Result* denoise(const Signal &sig);
 
   protected:
     /* ICI parameters */
@@ -90,7 +90,7 @@ namespace Denoise {
     const double sigma_;
 
   private:
-    void denoise_(const signal &sig, signal &res, std::vector<int> &interval);
+    void denoise_(const Signal &sig, Signal &res, std::vector<int> &interval);
   };
 
   /* ICI denoising method implemented on CUDA arhitecture. */
@@ -101,9 +101,9 @@ namespace Denoise {
       ICIDenoiser(gama, rc, sigma) {}
 
     /* Denoising methods. */
-    virtual Denoiser::Result* denoise(const signal &sig);
+    virtual Denoiser::Result* denoise(const Signal &sig);
     virtual void denoiseMultiple(
-      const std::vector<signal> &input, std::vector<Denoiser::Result*> &res);
+      const std::vector<Signal> &input, std::vector<Denoiser::Result*> &res);
   };
 
 }  // namespace

@@ -13,42 +13,42 @@ namespace Combine {
 
 using Combine::WindowCombiner;
 
-typedef std::vector<double> signal;
+typedef std::vector<double> Signal;
 
 enum GuessMode { NONE, GUESS_B, GUESS_C };
 
-void adwt(signal &input, WindowCombiner *wcombiner, GuessMode adwt_mode,
-          signal &res, signal &sig_a, signal &sig_d);
+void adwt(Signal &input, WindowCombiner *wcombiner, GuessMode adwt_mode,
+          Signal &res, Signal &sig_a, Signal &sig_d);
 
 struct ADWTSubSystem {
   ADWTSubSystem() {}
 
-  void process(const signal &input) {
+  void process(const Signal &input) {
     x2_.clear();
     x4_.clear();
     process_(input);
   }
 
-  const signal &sig_x2() const { return x2_; }
-  const signal &sig_x4() const { return x4_; }
+  const Signal &sig_x2() const { return x2_; }
+  const Signal &sig_x4() const { return x4_; }
 
-  void finalize(const signal &input, bool positive, 
-                const signal *param, signal &res);
+  void finalize(const Signal &input, bool positive, 
+                const Signal *param, Signal &res);
 
 
   virtual bool x2_prefix() const = 0;
   virtual bool x4_prefix() const = 0;
 
 protected:
-  virtual void process_(const signal &input) = 0;
+  virtual void process_(const Signal &input) = 0;
 
-  signal x2_;
-  signal x4_;
+  Signal x2_;
+  Signal x4_;
 };
 
 struct ADWTInterpolate : public ADWTSubSystem {
   ADWTInterpolate() {}
-  void process_(const signal &input);
+  void process_(const Signal &input);
 
   bool x2_prefix() const;
   bool x4_prefix() const;
@@ -56,7 +56,7 @@ struct ADWTInterpolate : public ADWTSubSystem {
 
 struct ADWTUpdate : public ADWTSubSystem {
   ADWTUpdate() {}
-  void process_(const signal &input);  
+  void process_(const Signal &input);  
 
   bool x2_prefix() const;
   bool x4_prefix() const;

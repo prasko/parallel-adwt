@@ -8,7 +8,7 @@
 #include <vector>
 #include <iostream>
 
-typedef std::vector<double> signal;
+typedef std::vector<double> Signal;
 
 class System {
 public:
@@ -22,14 +22,14 @@ protected:
 class Decimator : public System {
 public:  
   Decimator(const double constant=1.0) : System(constant) {}
-  void decimate(const signal &input, signal &res_even, signal &res_odd);
+  void decimate(const Signal &input, Signal &res_even, Signal &res_odd);
 };
 
 class PolySystem : public System {
 public:  
   PolySystem(const double constant=1.0) : System(constant) {}
   void addMember(const int offset, const double coef);
-  virtual void process(const signal &input, signal &output);
+  virtual void process(const Signal &input, Signal &output);
 
 private:
   std::vector< std::pair<int, double> > members_;
@@ -40,25 +40,25 @@ public:
   Multiply2(const double constant) : System(constant) {}
   Multiply2(const bool constant=true) : System(constant ? 1.0 : -1.0) {}
 
-  void multiply(const signal &s1, const signal &s2, signal &res);
+  void multiply(const Signal &s1, const Signal &s2, Signal &res);
 };
 
 class Add2 : public System {
 public:
   Add2(const double constant=1.0) : System(constant) {}
-  void add(const signal &s1, const signal &s2, const double c2, signal &res);
+  void add(const Signal &s1, const Signal &s2, const double c2, Signal &res);
 };
 
 class Sumator {
 public:
-  Sumator(signal &result) : result_(&result) {}
-  void init(signal &result);
-  void sumSignal(const signal &signal, const double coef);
-  void sumSignal(const signal &signal, const bool prefix);
-  void sumMultiply(const signal &s1, const signal &s2, const bool prefix);
+  Sumator(Signal &result) : result_(&result) {}
+  void init(Signal &result);
+  void sumSignal(const Signal &signal, const double coef);
+  void sumSignal(const Signal &signal, const bool prefix);
+  void sumMultiply(const Signal &s1, const Signal &s2, const bool prefix);
 
 private:
-  signal *result_;
+  Signal *result_;
 };
 
 

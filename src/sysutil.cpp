@@ -6,7 +6,7 @@
 
 #include "sysutil.h"
 
-void Decimator::decimate(const signal &s, signal &re, signal &ro) {
+void Decimator::decimate(const Signal &s, Signal &re, Signal &ro) {
     for(int i = 0; i < (int)s.size(); ++i) {
       if(i % 2 == 0) 
         re.push_back(s[i] * constant_);
@@ -24,7 +24,7 @@ void PolySystem::addMember(const int offset, const double coef) {
   members_.push_back(std::make_pair(offset, coef));
 }
 
-void PolySystem::process(const signal &s, signal &res) {
+void PolySystem::process(const Signal &s, Signal &res) {
   for(int i = 0; i < (int)s.size(); ++i) {
     double sum = 0;
 
@@ -35,7 +35,7 @@ void PolySystem::process(const signal &s, signal &res) {
   }
 }
 
-void Multiply2::multiply(const signal &s1, const signal &s2, signal &res) {
+void Multiply2::multiply(const Signal &s1, const Signal &s2, Signal &res) {
   for(int i = 0; i < (int)std::min(s1.size(), s2.size()); ++i) {
     res.push_back(s1[i] * s2[i] * constant_);
   }
@@ -43,7 +43,7 @@ void Multiply2::multiply(const signal &s1, const signal &s2, signal &res) {
   res.resize(std::max(s1.size(), s2.size()));
 }
 
-void Add2::add(const signal &s1, const signal &s2, const double c2, signal &r) {
+void Add2::add(const Signal &s1, const Signal &s2, const double c2, Signal &r) {
   int n = s1.size(), m = s2.size(), l = std::max(n, m);
 
   for(int i = 0; i < l; ++i) {
@@ -57,11 +57,11 @@ void Add2::add(const signal &s1, const signal &s2, const double c2, signal &r) {
   }
 }
 
-void Sumator::init(signal &result) { 
+void Sumator::init(Signal &result) { 
   result_ = &result; 
 }
 
-void Sumator::sumSignal(const signal &signal, const double coef) {
+void Sumator::sumSignal(const Signal &signal, const double coef) {
   if(signal.size() > result_->size())
     result_->resize(signal.size());
     
@@ -69,7 +69,7 @@ void Sumator::sumSignal(const signal &signal, const double coef) {
     *(result_->begin() + i) += coef * signal[i];
 }
 
-void Sumator::sumSignal(const signal &signal, const bool prefix) {
+void Sumator::sumSignal(const Signal &signal, const bool prefix) {
   if(signal.size() > result_->size())
     result_->resize(signal.size());
     
@@ -84,7 +84,7 @@ void Sumator::sumSignal(const signal &signal, const bool prefix) {
   }
 }
 
-void Sumator::sumMultiply(const signal &s1, const signal &s2, bool prefix) {
+void Sumator::sumMultiply(const Signal &s1, const Signal &s2, bool prefix) {
   if(s1.size() > result_->size() || s2.size() > result_->size())
     result_->resize(std::max(s1.size(), s2.size()));
     

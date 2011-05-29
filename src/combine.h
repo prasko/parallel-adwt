@@ -10,7 +10,7 @@
 
 #include "lpw.h"
 
-typedef std::vector<double> signal;
+typedef std::vector<double> Signal;
 
 namespace Denoise {
   class ICIDenoiser;
@@ -22,7 +22,7 @@ namespace Combine {
   public:
     WindowCombiner() {}
     virtual void combine(std::vector<double> &result) = 0;
-    virtual void setLpwData(const signal &y, const signal &x) = 0;
+    virtual void setLpwData(const Signal &y, const Signal &x) = 0;
   };
 
   class CUDACombiner : public WindowCombiner {
@@ -31,21 +31,21 @@ namespace Combine {
 
     void combine(std::vector<double> &result);
 
-    void setLpwData(const signal &y, const signal &x) {
+    void setLpwData(const Signal &y, const Signal &x) {
       x_ = &x;
       y_ = &y;
     }
   
   private:
-    const signal *y_;
-    const signal *x_;
+    const Signal *y_;
+    const Signal *x_;
   };
 
   class LpwCombiner : public WindowCombiner {
   public:
     LpwCombiner(Lpw &lpw) : lpw_(lpw) {}
 
-    void setLpwData(const signal &y, const signal &x) {
+    void setLpwData(const Signal &y, const Signal &x) {
       lpw_.setLpwData(y, x);
     }
 

@@ -22,7 +22,7 @@ namespace Denoise {
     return dns_signal[index]; 
   }
 
-  void Denoiser::denoiseMultiple(const std::vector<signal> &input,
+  void Denoiser::denoiseMultiple(const std::vector<Signal> &input,
                                  std::vector<Result*> &res) {
     assert(res.size() == 0);
 
@@ -48,7 +48,7 @@ namespace Denoise {
     return right_interval[index];
   }
 
-  void ICIDenoiser::denoise_(const signal &sig, signal &res, 
+  void ICIDenoiser::denoise_(const Signal &sig, Signal &res, 
                              std::vector<int> &interval) {
     // init constants
     const double gama = gama_;
@@ -98,11 +98,11 @@ namespace Denoise {
     }
   }
 
-  Denoiser::Result* ICIDenoiser::denoise(const signal &sig) {
+  Denoiser::Result* ICIDenoiser::denoise(const Signal &sig) {
     Result *res = new Result();
 
     // init result signals, and reversed signal for left way
-    signal res_left, res_right, sig_left(sig);
+    Signal res_left, res_right, sig_left(sig);
     std::reverse(sig_left.begin(), sig_left.end());
 
     // denoise right, then left way

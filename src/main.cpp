@@ -14,7 +14,7 @@ int main() {
 
   scanf("%d", &width);
 
-  signal input(width);
+  Signal input(width);
   
   for(int i = 0; i < width; ++i) {
     scanf("%lf", &input[i]);
