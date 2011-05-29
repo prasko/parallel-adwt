@@ -50,15 +50,10 @@ namespace Denoise {
 
   void ICIDenoiser::denoise_(const Signal &sig, Signal &res, 
                              std::vector<int> &interval) {
-    // init constants
-    const double gama = gama_;
-    const double sigma_noise = sigma_;
-    const double rc = rc_;
-
     const int len = (int)sig.size();
     
     // init variables
-    double sum, avg, tavg, sigma, rk;
+    double sum, avg, tavg, curr_sigma, rk;
     double maxlb, minub;
 
     // window size
@@ -77,14 +72,14 @@ namespace Denoise {
         // calculate current sum, temp. average and sigma
         sum += sig[n+k-1];
         tavg = sum / k;
-        sigma = sigma_noise / sqrt(k);
+        curr_sigma = sigma / sqrt(k);
 
         // recalculate max upper and min lower bounds
-        minub = std::min(minub, tavg + gama * sigma);
-        maxlb = std::max(maxlb, tavg - gama * sigma);
+        minub = std::min(minub, tavg + gama * curr_sigma);
+        maxlb = std::max(maxlb, tavg - gama * curr_sigma);
 
         // calculate new RICI parameter Rk
-        rk = (minub - maxlb) / (2 * gama * sigma);
+        rk = (minub - maxlb) / (2 * gama * curr_sigma);
 
         // break if ICI or RICI conditions achieved
         if(minub < maxlb || rk < rc) break;

@@ -10,6 +10,63 @@
 
 typedef float Decimal;
 
+using std::vector;
+
+__global__ void denoise_kernel(const Decimal *signals, 
+                               Decimal *param, 
+                               Decimal *wsize,
+                               const int n,
+                               const int m,
+                               const Denoise::CUDAICIDenoiser denoiser) {
+
+  // init starting thread responsibility
+  int signal_pos = blockIdx.x * blockDim.x * thread_jobs + threadIdx.x;
+  const int signal_index = blockIdx.y * blockDim.y + threadIdx.y;
+
+  if(signal_index >= n) return;
+
+  // init variables
+  Decimal sum, avg, tavg, curr_sigma, rk;
+  Decimal maxlb, minub;
+
+  // window size
+  int wsize;
+
+  for(int job = 0; job < thread_jobs; ++job) {
+    if(signal_pos >= m) return;
+    
+    // init max upper and min lower bounds
+    maxlb = -1e7;
+    minub = +1e7;
+
+    // increment wsize - window size
+    for(wsize = 2; signal_pos+wsize-1 < m; ++wsize) {
+      // calculate current sum, temp. average and sigma
+      sum += signals[signal_index*m+signal_pos+wsize-1];
+      tavg = sum / wsize;
+      curr_sigma = sigma / sqrt(wsize);
+
+      // recalculate max upper and min lower bounds
+      minub = std::min(minub, tavg + gama * curr_sigma);
+      maxlb = std::max(maxlb, tavg - gama * curr_sigma);
+
+      // calculate new RICI parameter Rk
+      rk = (minub - maxlb) / (2 * gama * curr_sigma);
+
+      // break if ICI or RICI conditions achieved
+      if(minub < maxlb || rk < rc) break;
+
+      avg = tavg;
+    }
+
+    // add average and window size to solution
+    param[signal_index*m+signal_pos] = avg;
+    wsize[signal_index*m+signal_pos] = wsize-1;
+
+    signal_pos += blockDim.x;
+  }
+}
+
 namespace Denoise {
 
   Denoiser::Result* CUDAICIDenoiser::denoise(const Signal &sig) {
@@ -21,10 +78,14 @@ namespace Denoise {
     return multiple.res[0];
   }
 
-  void CUDAICIDenoiser::denoiseMultiple(const std::vector<Signal> &sig,
-      std::vector<Denoiser::Result*> &res) {
+  void CUDAICIDenoiser::denoiseMultiple(const vector<Signal> &sig,
+                                        vector<Denoiser::Result*> &res) {
 
-    if(sig.empty()) return;
+    assert(res.empty());
+
+    if(sig.empty()) {
+      return;
+    }
 
     // 1. init number of signals, signal width, and width in bytes
 
@@ -32,12 +93,13 @@ namespace Denoise {
     int m = (int)sig[0].size();
     bool same_width = true;
 
-    for(int i = 1; i < n; ++i)
+    for(int i = 1; i < n; ++i) {
       if((int)sig[i].size() > m) {
         same_width = false;
         m = sig[i];
       }
-  
+    }
+
     const int width_bytes = m*sizeof(Decimal);
     const int size_bytes = 2*n*width_bytes;
 
@@ -57,8 +119,8 @@ namespace Denoise {
       std::copy(sig[i].begin(), sig[i].end(), 
                 host_signals+2*i*width);
 
-      std::reverse_copy(sig[i].begin(), sig[i].end, 
-                        host_signals+(2*i+1)*width+(m-(int)sig[i].size()));
+      std::reverse_copy(sig[i].begin(), sig[i].end(), 
+                        host_signals+(2*i+2)*m-(int)sig[i].size());
     }
 
     Decimal *device_signals;
@@ -76,7 +138,23 @@ namespace Denoise {
 
     // 3. init kernel
 
+    const int block_size = 16;
+    const int thread_spread = 32;
+
+    const int grid_width = (n-1) / (block_size_ * thread_jobs_) + 1;
+    const int grid_height = (n-1) / block_size_ + 1;
+
+    dim3 dim_block(block_size, block_size);
+    dim3 dim_grid(grid_width, grid_height);
+
     // 4. start kernel
+
+    denoise_kernel<<<dim_grid, dim_block>>>(device_signals, 
+                                            device_param,
+                                            device_wsize, 
+                                            n,
+                                            m,
+                                            *this);
 
     // 5. retrieve and post-calculate results
 
